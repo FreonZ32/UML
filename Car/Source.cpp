@@ -6,6 +6,8 @@ using std::endl;
 
 #define MAX_TANK_VOLUME 80
 #define MIN_TANK_VOLUME 40
+#define MIN_ENGINE_CONSUMPTION 4
+#define MAX_ENGINE_CONSUMPTION 40
 
 class Tank
 {
@@ -46,9 +48,59 @@ public:
 	}
 };
 
+class Engine
+{
+	double consumption;
+	double consumption_per_second;
+	bool EngineWork;
+
+public:
+	double get_consumption()const
+	{return consumption;}
+	double get_consumption_fer_second()const
+	{return consumption_per_second;}
+	bool get_EngineWork()const
+	{return EngineWork;}
+	void set_consumption(double consumption)
+	{
+		if (consumption >= MIN_ENGINE_CONSUMPTION && consumption <= MAX_ENGINE_CONSUMPTION)
+			this->consumption = consumption;
+		else
+			this->consumption = MAX_ENGINE_CONSUMPTION / 2;
+		consumption_per_second = consumption * .3e-4;
+	}
+	void set_EngineWork(bool EngineWork)
+	{this->EngineWork = EngineWork;}
+
+	explicit Engine(double consumption)
+	{
+		set_consumption(consumption);
+		set_EngineWork(false);
+		cout << "Engine is ready:" << endl;
+	}
+	~Engine()
+	{cout << "Engine is gone:" << endl;}
+
+	bool start()
+	{EngineWork = true;}
+	bool stop()
+	{EngineWork = false;}
+
+	void info()const
+	{
+		cout << "Consumption:  " << consumption << endl;
+		cout << "Consumption per second:  " << consumption_per_second << endl;
+		cout << "Engine is:  " << (EngineWork? "started" : "stopped") << endl;
+	}
+};
+
+//#define TANK_CH
+#define ENGINE_CH
+
 void main()
 {
 	setlocale(LC_ALL, "rus");
+#ifdef TANK_CH
 	Tank tank(120);
 	tank.info();
 	int fuel;
@@ -58,4 +110,12 @@ void main()
 		tank.fill(fuel);
 		tank.info();
 	}
+#endif // TANK_CH
+
+#ifdef ENGINE_CH
+	Engine engine(9);
+	engine.info();
+#endif // ENGINE_CH
+
+
 }
