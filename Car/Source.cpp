@@ -1,4 +1,5 @@
 #include<iostream>
+#include<Windows.h>
 using namespace std;
 using std::cout;
 using std::cin;
@@ -13,13 +14,17 @@ class Tank
 {
 	const unsigned int VOLUME;
 	double fuel_level;
+	bool IsOnReserve;
+	bool IsComplete;
 public:
 	const unsigned int get_VOLUME()const
 	{return VOLUME;}
 	double get_fuel_level()const
 	{return fuel_level;}
-
-	Tank(unsigned int volume) :VOLUME(volume >= MIN_TANK_VOLUME && volume <= MAX_TANK_VOLUME ? volume:MAX_TANK_VOLUME), fuel_level(0)
+	bool get_IsComplete()
+	{return IsComplete;}
+	Tank(unsigned int volume = MAX_TANK_VOLUME)
+		:VOLUME(volume >= MIN_TANK_VOLUME && volume <= MAX_TANK_VOLUME ? volume : MAX_TANK_VOLUME), fuel_level(0),IsOnReserve(true), IsComplete (true)
 	{
 		cout << "Tank is ready\t" << endl;
 	}
@@ -30,21 +35,28 @@ public:
 
 	double fill(double fuel)
 	{
-		if (fuel_level + fuel <= 0)return fuel_level = 0;
-		else if (fuel_level + fuel >= VOLUME)return fuel_level = VOLUME;
-		else return fuel_level += fuel;
+		if (fuel_level + fuel <= 0) { fuel_level = 0; ChecksSwitch(fuel_level); return fuel_level; }
+		else if (fuel_level + fuel >= VOLUME) { fuel_level = VOLUME; ChecksSwitch(fuel_level); return fuel_level; }
+		else { fuel_level += fuel; ChecksSwitch(fuel_level); return fuel_level; };
 	}
 	double give_fuel(double fuel)
 	{
 		fuel_level -= fuel;
 		if (fuel_level < 0)fuel_level = 0;
+		ChecksSwitch(fuel_level);
 		return fuel_level;
 	}
-
+	void ChecksSwitch(double fuel_level)
+	{
+		fuel_level <= 5 ? this->IsOnReserve = true : this->IsOnReserve = false;
+		fuel_level == 0 ? this->IsComplete = true : this->IsComplete = false;
+	}
 	void info()const
 	{
 		cout << "Tank volume: " << VOLUME << endl;
 		cout << "Fuel level: " << fuel_level << endl;
+		if (IsComplete)cout << "Fuel level on ziro!" << endl;
+		else if(IsOnReserve)cout << "Fuel level is low!" << endl;
 	}
 };
 
@@ -69,21 +81,20 @@ public:
 			this->consumption = MAX_ENGINE_CONSUMPTION / 2;
 		consumption_per_second = consumption * .3e-4;
 	}
-	void set_EngineWork(bool EngineWork)
-	{this->EngineWork = EngineWork;}
 
-	explicit Engine(double consumption)
+	explicit Engine(double consumption = MAX_ENGINE_CONSUMPTION)
 	{
 		set_consumption(consumption);
-		set_EngineWork(false);
+		this->EngineWork = false;
 		cout << "Engine is ready:" << endl;
 	}
 	~Engine()
 	{cout << "Engine is gone:" << endl;}
 
-	bool start()
+
+	void start()
 	{EngineWork = true;}
-	bool stop()
+	void stop()
 	{EngineWork = false;}
 
 	void info()const
@@ -94,8 +105,42 @@ public:
 	}
 };
 
+class Car 
+{
+	Engine CEngine;
+	Tank CTank;
+public:
+	Car(double fuel_level, double consumption)
+	{
+		this->CTank.fill(fuel_level);
+		this->CEngine.set_consumption(consumption);
+	}
+	~Car(){}
+
+	void CarOn()
+	{
+		if(CTank.get_IsComplete()) { AllInfo(); return; }
+		CEngine.start();
+		if(!CTank.get_IsComplete())
+		{
+			CTank.give_fuel(CTank.give_fuel(CEngine.get_consumption_fer_second()));
+			system("cls");
+			AllInfo();
+			Sleep(100);
+		}
+	}
+	void AllInfo()
+	{
+		CEngine.info();
+		CTank.info();
+	}	
+	//friend class Engine;
+	//friend class Tank;
+};
+
 //#define TANK_CH
-#define ENGINE_CH
+//#define ENGINE_CH
+#define CAR_CH
 
 void main()
 {
@@ -117,5 +162,9 @@ void main()
 	engine.info();
 #endif // ENGINE_CH
 
+#ifdef CAR_CH
+	Car car1(60, 9);
+	car1.CarOn();
+#endif // CAR_CH
 
 }
