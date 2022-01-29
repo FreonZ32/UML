@@ -55,7 +55,7 @@ public:
 	{
 		cout << "Tank volume: " << VOLUME << endl;
 		cout << "Fuel level: " << fuel_level << endl;
-		if (IsComplete)cout << "Fuel level on ziro!" << endl;
+		if (IsComplete)cout << "Fuel level on zero!" << endl;
 		else if(IsOnReserve)cout << "Fuel level is low!" << endl;
 	}
 };
@@ -121,9 +121,9 @@ public:
 	{
 		if(CTank.get_IsComplete()) { AllInfo(); return; }
 		CEngine.start();
-		if(!CTank.get_IsComplete())
+		while(!CTank.get_IsComplete())
 		{
-			CTank.give_fuel(CTank.give_fuel(CEngine.get_consumption_fer_second()));
+			CTank.give_fuel(CEngine.get_consumption_fer_second());
 			system("cls");
 			AllInfo();
 			Sleep(100);
@@ -163,7 +163,7 @@ void main()
 #endif // ENGINE_CH
 
 #ifdef CAR_CH
-	Car car1(60, 9);
+	Car car1(5, 9);
 	car1.CarOn();
 #endif // CAR_CH
 
