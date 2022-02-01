@@ -155,11 +155,11 @@ public:
 			if (!CEngine.get_EngineWork())key = 'f';
 			switch (key)
 			{
-			case 'f':if (CEngine.get_EngineWork());
+			case 'f':case'F':if (CEngine.get_EngineWork());
 					else { this->ignition = true; CEngine.start(); set_engineSpeed(1500); } break;
-			case 'w': set_engineSpeed(this->engineSpeed + 100); break;
-			case 's': set_engineSpeed(this->engineSpeed - 100);if(engineSpeed<1500)CEngine.stop(); break;
-			case 'q': this->ignition = false; CEngine.stop(); set_engineSpeed(0); break;
+			case 'w':case 'W': set_engineSpeed(this->engineSpeed + 100); break;
+			case 's':case 'S': set_engineSpeed(this->engineSpeed - 100);if(engineSpeed<1500)CEngine.stop(); break;
+			case 'q':case 'Q': this->ignition = false; CEngine.stop(); set_engineSpeed(0); break;
 			case 27: this->getInCar = false;
 			}
 		}
@@ -206,7 +206,7 @@ public:
 			CTank.info();
 			CControlLevels.info();
 			CControlLevels.keyBoardHit(CEngine, CTank);
-			Sleep(100);
+			Sleep(50);
 			system("cls");
 		}
 	}
