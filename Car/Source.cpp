@@ -28,14 +28,11 @@ public:
 	bool get_IsComplete()
 	{return IsComplete;}
 	Tank(unsigned int volume = MAX_TANK_VOLUME)
-		:VOLUME(volume >= MIN_TANK_VOLUME && volume <= MAX_TANK_VOLUME ? volume : MAX_TANK_VOLUME), fuel_level(0),IsOnReserve(true), IsComplete (true)
-	{
-		//cout << "Tank is ready\t" << endl;
-	}
+		:VOLUME(volume >= MIN_TANK_VOLUME && volume <= MAX_TANK_VOLUME ? volume : MAX_TANK_VOLUME),
+		fuel_level(0),IsOnReserve(true), IsComplete (true)
+	{cout << "Tank is ready\t" << endl;}
 	~Tank()
-	{
-		//cout << "Tank is gone\t" << endl;
-	}
+	{cout << "Tank is gone\t" << endl;}
 
 	double fill(double fuel)
 	{
@@ -95,7 +92,6 @@ public:
 	~Engine()
 	{/*cout << "Engine is gone:" << endl;*/}
 
-
 	void start()
 	{EngineWork = true;}
 	void stop()
@@ -126,7 +122,7 @@ public:
 	void set_ignition(bool ignition)
 	{
 		if (ignition) set_engineSpeed(1500);
-		else { set_engineSpeed(0); };
+		else set_engineSpeed(0);
 	}
 	unsigned short get_engineSpeed()const
 	{return this->engineSpeed;}
@@ -172,8 +168,8 @@ public:
 	void info()
 	{
 		printf("Engine Speed: %u\n", engineSpeed);
-		for (int i = 0; i < (engineSpeed - 1500) / 100; cout << "|", i++);
-		cout << endl;
+		//for (int i = 0; i < (engineSpeed - 1500) / 100; cout << "|", i++);
+		//cout << endl;
 	}
 };
 
@@ -189,6 +185,7 @@ public:
 	{return CTank;}
 	ControlLevers get_CControlLevels()const
 	{return CControlLevels;}
+
 	Car(double fuel_level, double consumption)
 	{
 		this->CTank.fill(fuel_level);
