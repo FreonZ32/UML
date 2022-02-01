@@ -101,11 +101,13 @@ public:
 
 	bool start()
 	{
-		return EngineWork = true;
+		EngineWork = true;
+		return EngineWork;
 	}
 	bool stop()
 	{
-		return EngineWork = false;
+		EngineWork = false;
+		return EngineWork;
 	}
 
 	void info()const
