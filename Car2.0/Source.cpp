@@ -181,7 +181,7 @@ public:
 			case Enter: if (driver_inside)get_out(); else get_in(); break;
 			case 'f':case 'F':double fuel; cout << "Введите объем топлива: "; cin >> fuel; fill(fuel); break;
 			case 'i': case 'I':if (engine.get_EngineWork())stop_engine(); else start_engine(); break;
-			case Escape:if(control.panel_thread.joinable())get_out(); break;
+			case Escape:if (control.panel_thread.joinable())get_out(); stop_engine(); break;
 			}
 		} while (key != 27);
 	}
