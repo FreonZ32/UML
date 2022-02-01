@@ -1,5 +1,7 @@
 #include<iostream>
+#include<conio.h>
 #include<Windows.h>
+
 using namespace std;
 using std::cout;
 using std::cin;
@@ -9,6 +11,8 @@ using std::endl;
 #define MIN_TANK_VOLUME 40
 #define MIN_ENGINE_CONSUMPTION 4
 #define MAX_ENGINE_CONSUMPTION 40
+#define MIN_GEAR_SHIFT 0
+#define MAX_GEAR_SHIFT 8000
 
 class Tank
 {
@@ -26,11 +30,11 @@ public:
 	Tank(unsigned int volume = MAX_TANK_VOLUME)
 		:VOLUME(volume >= MIN_TANK_VOLUME && volume <= MAX_TANK_VOLUME ? volume : MAX_TANK_VOLUME), fuel_level(0),IsOnReserve(true), IsComplete (true)
 	{
-		cout << "Tank is ready\t" << endl;
+		//cout << "Tank is ready\t" << endl;
 	}
 	~Tank()
 	{
-		cout << "Tank is gone\t" << endl;
+		//cout << "Tank is gone\t" << endl;
 	}
 
 	double fill(double fuel)
@@ -53,10 +57,10 @@ public:
 	}
 	void info()const
 	{
-		cout << "Tank volume: " << VOLUME << endl;
-		cout << "Fuel level: " << fuel_level << endl;
-		if (IsComplete)cout << "Fuel level on zero!" << endl;
-		else if(IsOnReserve)cout << "Fuel level is low!" << endl;
+		printf("Tank volume: %u\n", VOLUME);
+		printf("Fuel level: %2.3f\n", fuel_level);
+		if (IsComplete)printf("Fuel level on zero!\n");
+		else if(IsOnReserve)printf("Fuel level is low!\n");
 	}
 };
 
@@ -86,10 +90,10 @@ public:
 	{
 		set_consumption(consumption);
 		this->EngineWork = false;
-		cout << "Engine is ready:" << endl;
+		//cout << "Engine is ready:" << endl;
 	}
 	~Engine()
-	{cout << "Engine is gone:" << endl;}
+	{/*cout << "Engine is gone:" << endl;*/}
 
 
 	void start()
@@ -97,11 +101,79 @@ public:
 	void stop()
 	{EngineWork = false;}
 
-	void info()const
+	double ConsumptionWithSpeed(unsigned short engineSpeed)
 	{
-		cout << "Consumption:  " << consumption << endl;
-		cout << "Consumption per second:  " << consumption_per_second << endl;
-		cout << "Engine is:  " << (EngineWork? "started" : "stopped") << endl;
+		if (engineSpeed == 0)return 0;
+		else return((double(engineSpeed-1500))/1000000);
+	}
+
+	void info(double counsumption_per_second_plus_speedEngine)const
+	{
+		printf("Consumption: %f\n", consumption);
+		printf("Consumption per second: %2.5f\n", consumption_per_second + counsumption_per_second_plus_speedEngine);
+		cout << "Engine is: " << (EngineWork?"started" : "stopped") << endl;
+	}
+};
+
+class ControlLevers 
+{
+	bool getInCar;
+	bool ignition;
+	unsigned short engineSpeed;
+public:
+	bool get_getInCar()const
+	{return this->getInCar;}
+	void set_ignition(bool ignition)
+	{
+		if (ignition) set_engineSpeed(1500);
+		else { set_engineSpeed(0); };
+	}
+	unsigned short get_engineSpeed()const
+	{return this->engineSpeed;}
+	void  set_engineSpeed(unsigned short  engineSpeed)
+	{
+		if (engineSpeed < 1500 && ignition)
+		{ 
+			for (int i = 0; i < 100; printf("Äûð "), i++); 
+			printf("*ÃËÎÕÍÅÒ*"); Sleep(800); 
+			this->ignition = false; this->engineSpeed = 0;
+		}
+		else if (engineSpeed > MAX_GEAR_SHIFT)this->engineSpeed = 8000;
+		else this->engineSpeed = engineSpeed;
+	}
+
+	ControlLevers()
+	{
+		this->getInCar = true;
+		this->engineSpeed = 0;
+		this->ignition = false;
+	}
+	~ControlLevers(){}
+
+	void keyBoardHit(Engine& CEngine, Tank& CTank)
+	{
+		if (_kbhit())
+		{
+			char key;
+			key = _getch();
+			if (!CEngine.get_EngineWork())key = 'f';
+			switch (key)
+			{
+			case 'f':if (CEngine.get_EngineWork());
+					else { this->ignition = true; CEngine.start(); set_engineSpeed(1500); } break;
+			case 'w': set_engineSpeed(this->engineSpeed + 100); break;
+			case 's': set_engineSpeed(this->engineSpeed - 100);if(engineSpeed<1500)CEngine.stop(); break;
+			case 'q': this->ignition = false; CEngine.stop(); set_engineSpeed(0); break;
+			case 27: this->getInCar = false;
+			}
+		}
+	}
+
+	void info()
+	{
+		printf("Engine Speed: %u\n", engineSpeed);
+		for (int i = 0; i < (engineSpeed - 1500) / 100; cout << "|", i++);
+		cout << endl;
 	}
 };
 
@@ -109,7 +181,14 @@ class Car
 {
 	Engine CEngine;
 	Tank CTank;
+	ControlLevers CControlLevels;
 public:
+	Engine get_Cengine()const
+	{return CEngine;}
+	Tank get_CTank()const
+	{return CTank;}
+	ControlLevers get_CControlLevels()const
+	{return CControlLevels;}
 	Car(double fuel_level, double consumption)
 	{
 		this->CTank.fill(fuel_level);
@@ -119,23 +198,21 @@ public:
 
 	void CarOn()
 	{
-		if(CTank.get_IsComplete()) { AllInfo(); return; }
-		CEngine.start();
-		while(!CTank.get_IsComplete())
+		while (CControlLevels.get_getInCar())
 		{
-			CTank.give_fuel(CEngine.get_consumption_fer_second());
-			system("cls");
-			AllInfo();
+			if (CTank.get_IsComplete()) { CControlLevels.set_ignition(false); CEngine.stop(); }
+			if (CEngine.get_EngineWork())
+			{
+				CTank.give_fuel(CEngine.get_consumption_fer_second()+CEngine.ConsumptionWithSpeed(CControlLevels.get_engineSpeed()));
+			}
+			CEngine.info(CEngine.ConsumptionWithSpeed(CControlLevels.get_engineSpeed()));
+			CTank.info();
+			CControlLevels.info();
+			CControlLevels.keyBoardHit(CEngine, CTank);
 			Sleep(100);
+			system("cls");
 		}
 	}
-	void AllInfo()
-	{
-		CEngine.info();
-		CTank.info();
-	}	
-	//friend class Engine;
-	//friend class Tank;
 };
 
 //#define TANK_CH
@@ -163,8 +240,8 @@ void main()
 #endif // ENGINE_CH
 
 #ifdef CAR_CH
-	Car car1(5, 9);
-	car1.CarOn();
+	Car Car1(60, 8);
+	Car1.CarOn();
 #endif // CAR_CH
 
 }
