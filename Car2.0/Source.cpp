@@ -61,7 +61,7 @@ class Engine
 	double consumption;
 	double consumption_per_second;
 	bool EngineWork;
-	unsigned int engineSpeed;
+	unsigned int SpeedEngine;
 
 public:
 	double get_consumption()const
@@ -70,26 +70,23 @@ public:
 	}
 	double get_consumption_per_second()const
 	{
-		return consumption_per_second;
+		if (SpeedEngine < 60)return consumption_per_second;
+		else if (SpeedEngine >= 60 && SpeedEngine < 100) { return consumption_per_second - this->consumption_per_second / 4; }
+		else if (SpeedEngine >= 100 && SpeedEngine < 160) { return consumption_per_second + this->consumption_per_second / 4; }
+		else if (SpeedEngine >= 160 && SpeedEngine <= 220) { return consumption_per_second + this->consumption_per_second / 3; }
 	}
 	bool get_EngineWork()const
 	{
 		return EngineWork;
 	}
-	unsigned int get_engineSpeed()
+	unsigned int get_SpeedEngine()
 	{
-		return engineSpeed;
+		return SpeedEngine;
 	}
 	void set_consumption(double consumption)
 	{
 		if (consumption >= MIN_ENGINE_CONSUMPTION && consumption <= MAX_ENGINE_CONSUMPTION)
-		{
 			this->consumption = consumption;
-			if (engineSpeed < 60);
-			else if (engineSpeed >= 60 && engineSpeed < 100) { this->consumption -= this->consumption / 4; }
-			else if (engineSpeed >=100 && engineSpeed < 160) { this->consumption += this->consumption / 4; }
-			else if (engineSpeed >=160 && engineSpeed < 220) { this->consumption += this->consumption / 3; }
-		}
 		else
 			this->consumption = MAX_ENGINE_CONSUMPTION / 2;
 		consumption_per_second = this->consumption * .3e-4;
@@ -98,18 +95,17 @@ public:
 	{
 		this->EngineWork = EngineWork;
 	}
-	void set_engineSpeed(unsigned int engineSpeed)
+	void set_SpeedEngine(unsigned int SpeedEngine)
 	{
-		if (engineSpeed < 0)engineSpeed = 0;
-		else if (engineSpeed > 220) engineSpeed = 220;
-		else this->engineSpeed = engineSpeed;
+		if (SpeedEngine < 0)SpeedEngine = 0;
+		else if (SpeedEngine > 220) SpeedEngine = 220;
+		else this->SpeedEngine = SpeedEngine;
 	}
-
 	explicit Engine(double consumption)
 	{
 		set_consumption(consumption);
 		set_EngineWork(false);
-		set_engineSpeed(0);
+		set_SpeedEngine(0);
 		printf("Engine is ready: %p\n", this);
 	}
 	~Engine()
@@ -167,14 +163,18 @@ public:
 	}
 	void start_engine()
 	{
-		if(tank.get_fuel_level())engine.start();
-		control.engine_idle_thread = std::thread(&Car::engine_idle, this);
+		if (tank.get_fuel_level())
+		{
+			engine.start();
+			control.engine_idle_thread = std::thread(&Car::engine_idle, this);
+			control.free_wheeling_thread = std::thread(&Car::free_wheeling, this);
+		}
 	}
 	void stop_engine()
 	{
 		engine.stop();
-		//for (engine.get_engineSpeed(); engine.get_engineSpeed() < 0; engine.set_engineSpeed(engine.get_engineSpeed() - 1));
-		control.engine_idle_thread.join();
+		if(control.engine_idle_thread.joinable())control.engine_idle_thread.join();
+		
 	}
 	void get_in()
 	{
@@ -184,7 +184,8 @@ public:
 	void get_out()
 	{
 		driver_inside = false;
-		control.panel_thread.join();
+		if(control.panel_thread.joinable())control.panel_thread.join();
+		if(engine.get_SpeedEngine()==0)if (control.free_wheeling_thread.joinable())control.free_wheeling_thread.join();
 		system("CLS");
 		cout << "You are out of car" << endl;
 	}
@@ -200,25 +201,45 @@ public:
 			case Enter: if (driver_inside)get_out(); else get_in(); break;
 			case 'f':case 'F':double fuel; cout << "Введите объем топлива: "; cin >> fuel; fill(fuel); break;
 			case 'i': case 'I':if (engine.get_EngineWork())stop_engine(); else start_engine(); break;
-			case 'w':case 'W':if (engine.get_EngineWork())engine.set_engineSpeed(engine.get_engineSpeed() + 1); break;
-			case 's':case 'S':if (engine.get_EngineWork())engine.set_engineSpeed(engine.get_engineSpeed() - 1); break;
-			case Escape:if (control.panel_thread.joinable())get_out(); stop_engine(); break;
+			case 'w':case 'W':if (engine.get_EngineWork())engine.set_SpeedEngine(engine.get_SpeedEngine() + 1); break;
+			case 's':case 'S':if (engine.get_EngineWork())engine.set_SpeedEngine(engine.get_SpeedEngine() - 1); break;
+			case Escape:stop_engine(); get_out(); break;
 			}
 		} while (key != 27);
 	}
 
 	void engine_idle()
 	{
-		while (engine.get_EngineWork() && tank.give_fuel(engine.get_consumption_per_second()));
+		while (engine.get_EngineWork() && tank.give_fuel(engine.get_consumption_per_second()))
+			std::this_thread::sleep_for(1s);
+	}
+	void free_wheeling()
+	{
+		while (!driver_inside)
+		{
+			if (engine.get_SpeedEngine())
+			{
+				engine.set_SpeedEngine(engine.get_SpeedEngine() - 1);
+			}
+		}
 		std::this_thread::sleep_for(1s);
 	}
+
 	void control_panel()
 	{
 		while (driver_inside)
 		{
 			system("CLS");
 			cout << "Fuel level: " << tank.get_fuel_level() << " liters." << endl;
-			cout << "Speed if vehicle: " << engine.get_engineSpeed()<< endl;
+			if (tank.get_fuel_level() < 5)
+			{
+				HANDLE hConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+				SetConsoleTextAttribute(hConsoleHandle, 4);
+				cout << "Low fuel" << endl;
+				SetConsoleTextAttribute(hConsoleHandle, 7);
+			}
+			cout << "Speed if vehicle: " << engine.get_SpeedEngine() << endl;
+			cout << "Consumption per second: " << engine.get_consumption_per_second() << endl;
 			cout << "Enhgine is: " << (engine.get_EngineWork() ? "started" : "stoped") << endl;
 			std::this_thread::sleep_for(1s);
 		}
@@ -255,7 +276,7 @@ void main()
 #endif // ENGINE_CH
 
 #ifdef CAR_CH
-	Car bmw(0, 80);
+	Car bmw(40, 80);
 	bmw.control_car();
 #endif // CAR_CH
 
