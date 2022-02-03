@@ -135,6 +135,9 @@ public:
 #define Enter 13
 #define Escape 27
 
+#define MAX_SPEED_LOW 120
+#define MAX_SPEED_HIGH 400
+
 class Car
 {
 	Tank tank;
@@ -146,10 +149,16 @@ class Car
 		thread engine_idle_thread;
 		thread free_wheeling_thread;
 	}control;
+	const int MAX_SPEED;
+	int speed;
 public:
-	Car(double engine_consumption, unsigned int tank_volume) :engine(engine_consumption), tank(tank_volume)
+	Car(double engine_consumption, unsigned int tank_volume, int max_speed) 
+		:engine(engine_consumption), 
+		tank(tank_volume),
+		MAX_SPEED(max_speed >= MAX_SPEED_LOW && max_speed<=MAX_SPEED_HIGH? max_speed:200)
 	{
 		driver_inside = false;
+		speed = 0;
 		printf("Your car is ready! %p\n", this);
 	}
 	~Car()
@@ -167,14 +176,17 @@ public:
 		{
 			engine.start();
 			control.engine_idle_thread = std::thread(&Car::engine_idle, this);
-			control.free_wheeling_thread = std::thread(&Car::free_wheeling, this);
 		}
+	}
+	void ruchnick()
+	{
+		if(driver_inside&& !control.free_wheeling_thread.joinable())
+		control.free_wheeling_thread = std::thread(&Car::free_wheeling, this);
 	}
 	void stop_engine()
 	{
 		engine.stop();
 		if(control.engine_idle_thread.joinable())control.engine_idle_thread.join();
-		
 	}
 	void get_in()
 	{
@@ -185,7 +197,7 @@ public:
 	{
 		driver_inside = false;
 		if(control.panel_thread.joinable())control.panel_thread.join();
-		if(engine.get_SpeedEngine()==0)if (control.free_wheeling_thread.joinable())control.free_wheeling_thread.join();
+		if(control.free_wheeling_thread.joinable())control.free_wheeling_thread.join();
 		system("CLS");
 		cout << "You are out of car" << endl;
 	}
@@ -201,8 +213,9 @@ public:
 			case Enter: if (driver_inside)get_out(); else get_in(); break;
 			case 'f':case 'F':double fuel; cout << "Введите объем топлива: "; cin >> fuel; fill(fuel); break;
 			case 'i': case 'I':if (engine.get_EngineWork())stop_engine(); else start_engine(); break;
-			case 'w':case 'W':if (engine.get_EngineWork())engine.set_SpeedEngine(engine.get_SpeedEngine() + 1); break;
-			case 's':case 'S':if (engine.get_EngineWork())engine.set_SpeedEngine(engine.get_SpeedEngine() - 1); break;
+			case 'l': case 'L':ruchnick(); break;
+			case 'w':case 'W':if (engine.get_EngineWork()&&control.free_wheeling_thread.joinable())engine.set_SpeedEngine(engine.get_SpeedEngine() + 1); break;
+			case 's':case 'S':if (engine.get_EngineWork()&&control.free_wheeling_thread.joinable())engine.set_SpeedEngine(engine.get_SpeedEngine() - 1); break;
 			case Escape:stop_engine(); get_out(); break;
 			}
 		} while (key != 27);
@@ -215,14 +228,15 @@ public:
 	}
 	void free_wheeling()
 	{
-		while (!driver_inside)
+		while (driver_inside)
 		{
-			if (engine.get_SpeedEngine())
+			if (!engine.get_EngineWork())
 			{
 				engine.set_SpeedEngine(engine.get_SpeedEngine() - 1);
 			}
+			std::this_thread::sleep_for(1s);
 		}
-		std::this_thread::sleep_for(1s);
+		if (!driver_inside)engine.set_SpeedEngine(0);
 	}
 
 	void control_panel()
@@ -276,7 +290,7 @@ void main()
 #endif // ENGINE_CH
 
 #ifdef CAR_CH
-	Car bmw(40, 80);
+	Car bmw(40, 80 ,250);
 	bmw.control_car();
 #endif // CAR_CH
 
