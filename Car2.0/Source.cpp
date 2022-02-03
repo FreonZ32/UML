@@ -86,9 +86,9 @@ public:
 		{
 			this->consumption = consumption;
 			if (engineSpeed < 60);
-			else if (engineSpeed >= 60 && engineSpeed < 100) { this->engineSpeed -= this->engineSpeed / 4; }
-			else if (engineSpeed >=100 && engineSpeed < 160) { this->engineSpeed += this->engineSpeed / 4; }
-			else if (engineSpeed >=160 && engineSpeed < 220) { this->engineSpeed += this->engineSpeed / 3; }
+			else if (engineSpeed >= 60 && engineSpeed < 100) { this->consumption -= this->consumption / 4; }
+			else if (engineSpeed >=100 && engineSpeed < 160) { this->consumption += this->consumption / 4; }
+			else if (engineSpeed >=160 && engineSpeed < 220) { this->consumption += this->consumption / 3; }
 		}
 		else
 			this->consumption = MAX_ENGINE_CONSUMPTION / 2;
@@ -132,7 +132,6 @@ public:
 	{
 		cout << "Consumption:  " << consumption << endl;
 		cout << "Consumption per second:  " << consumption_per_second << endl;
-		cout << "Speed if vehicle: " << engineSpeed << endl;
 		cout << "Engine is:  " << (EngineWork ? "started" : "stopped") << endl;
 	}
 };
@@ -174,7 +173,7 @@ public:
 	void stop_engine()
 	{
 		engine.stop();
-		for (engine.get_engineSpeed(); engine.get_engineSpeed() < 0; engine.set_engineSpeed(engine.get_engineSpeed() - 1));
+		//for (engine.get_engineSpeed(); engine.get_engineSpeed() < 0; engine.set_engineSpeed(engine.get_engineSpeed() - 1));
 		control.engine_idle_thread.join();
 	}
 	void get_in()
@@ -219,6 +218,7 @@ public:
 		{
 			system("CLS");
 			cout << "Fuel level: " << tank.get_fuel_level() << " liters." << endl;
+			cout << "Speed if vehicle: " << engine.get_engineSpeed()<< endl;
 			cout << "Enhgine is: " << (engine.get_EngineWork() ? "started" : "stoped") << endl;
 			std::this_thread::sleep_for(1s);
 		}
