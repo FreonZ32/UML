@@ -3,10 +3,15 @@
 #include<conio.h>
 #include<Windows.h>
 #include<chrono>
+#include<ctime>
+#include <queue>
 using namespace std;
+using std::chrono::system_clock;
 using std::cout;
 using std::cin;
 using std::endl;
+
+#pragma warning(disable : 4996)
 
 #define MAX_TANK_VOLUME 80
 #define MIN_TANK_VOLUME 40
@@ -128,19 +133,31 @@ class Car
 	Tank tank;
 	Engine engine;
 	bool driver_inside;
+	time_t timeNow;
+	time_t timeStartInsideCar;
+	double last_Engine_Work;
 	struct Control
 	{
 		thread panel_thread;
 		thread engine_idle_thread;
 		thread free_wheeling_thread;
+		thread time_thred;
 	}control;
 	const int MAX_SPEED;
 	int speed;
+	double trip;
+	double consumption_by_time;
 public:
-	Car(double engine_consumption, unsigned int tank_volume, int max_speed) 
-		:engine(engine_consumption), 
+	Car(double engine_consumption, unsigned int tank_volume, int max_speed, time_t timeNow = 0, 
+		time_t timeInsideCar = 0, double last_Engine_Work = 0, double trip = 0.0, double consumption_by_time = 0)
+		:engine(engine_consumption),
 		tank(tank_volume),
-		MAX_SPEED(max_speed >= MAX_SPEED_LOW && max_speed<=MAX_SPEED_HIGH? max_speed:200)
+		MAX_SPEED(max_speed >= MAX_SPEED_LOW && max_speed <= MAX_SPEED_HIGH ? max_speed : 200),
+		timeNow(timeNow),
+		timeStartInsideCar(timeInsideCar),
+		last_Engine_Work(last_Engine_Work),
+		trip(trip),
+		consumption_by_time(consumption_by_time)
 	{
 		driver_inside = false;
 		speed = 0;
@@ -161,22 +178,30 @@ public:
 		{
 			engine.start();
 			control.engine_idle_thread = std::thread(&Car::engine_idle, this);
+			system_clock::time_point today = system_clock::now();
+			timeStartInsideCar = system_clock::to_time_t(today);
 		}
 	}
 	void stop_engine()
 	{
 		engine.stop();
 		if(control.engine_idle_thread.joinable())control.engine_idle_thread.join();
+		last_Engine_Work = difftime(timeNow, timeStartInsideCar)+ last_Engine_Work;
 	}
 	void get_in()
 	{
 		driver_inside = true;
 		control.panel_thread = std::thread(&Car::control_panel, this);
+		control.time_thred = std::thread(&Car::time_panel, this);
 	}
 	void get_out()
 	{
+		last_Engine_Work = 0;
+		trip = 0;
+		consumption_by_time = 0;
 		driver_inside = false;
 		if(control.panel_thread.joinable())control.panel_thread.join();
+		if (control.time_thred.joinable())control.time_thred.join();
 		system("CLS");
 		cout << "You are out of car" << endl;
 	}
@@ -189,8 +214,9 @@ public:
 			key = _getch();
 			switch (key)
 			{
-			case Enter: if (driver_inside)get_out(); else get_in(); break;
-			case 'f':case 'F':double fuel; cout << "Введите объем топлива: "; cin >> fuel; fill(fuel); break;
+			case Enter: if (speed > 0) { cout << "Сначала остановитесь!" << endl; break; }if (driver_inside)get_out(); else get_in(); break;
+			case 'f':case 'F':if (driver_inside) { cout << "Сначала выйдите из машины!" << endl; break; }
+					double fuel; cout << "Введите объем топлива: "; cin >> fuel; fill(fuel); break;
 			case 'i': case 'I':if (engine.get_EngineWork())stop_engine(); else start_engine(); break;
 			case 'w':case 'W':if (engine.get_EngineWork()&& speed<=MAX_SPEED)speed += 10;
 				if (!control.free_wheeling_thread.joinable())
@@ -208,13 +234,17 @@ public:
 
 	void engine_idle()
 	{
-		while (engine.get_EngineWork() && tank.give_fuel(engine.get_consumption_per_second()+consumptionOfSpeed()))
+		while (engine.get_EngineWork() && tank.give_fuel(engine.get_consumption_per_second() + consumptionOfSpeed())) 
+		{
+			consumption_by_time += engine.get_consumption_per_second() + consumptionOfSpeed();
 			std::this_thread::sleep_for(1s);
+		}
 	}
 	void free_wheeling()
 	{
 		while (speed)
 		{
+			trip += double(speed)/3600;
 			speed--;
 			if (speed < 0)speed = 0;
 			std::this_thread::sleep_for(1s);
@@ -223,9 +253,13 @@ public:
 
 	void control_panel()
 	{
+		double timedif = 0.0;
 		while (driver_inside)
 		{
 			system("CLS");
+			cout << "Real time is: " << ctime(&timeNow);
+			if(engine.get_EngineWork())timedif = difftime(timeNow, timeStartInsideCar);
+			cout << "Time from start engine: " << timedif+last_Engine_Work << " sec;" << endl;
 			for (int i = 0; i < speed / 3; i++)
 			{ 
 				HANDLE hConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -244,8 +278,20 @@ public:
 			}
 			cout << "Speed if vehicle: " << speed << endl;
 			cout << "Consumption per second: " << engine.get_consumption_per_second()+consumptionOfSpeed() << endl;
+			printf("Consumption per all trip: %2.4f\n", consumption_by_time);
+			if(engine.get_EngineWork())printf("Middle consumption/s: %1.4f\n",(consumption_by_time /(timedif+last_Engine_Work)));
 			cout << "Enhgine is: " << (engine.get_EngineWork() ? "started" : "stoped") << endl;
-			std::this_thread::sleep_for(200ms);
+			printf("Trip distance : %3.2f km\n", trip);
+			std::this_thread::sleep_for(1s);
+		}
+	}
+
+	void time_panel()
+	{
+		while (driver_inside)
+		{
+			system_clock::time_point today = system_clock::now();
+			timeNow = system_clock::to_time_t(today);
 		}
 	}
 
