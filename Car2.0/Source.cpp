@@ -282,7 +282,7 @@ public:
 			if(engine.get_EngineWork())printf("Middle consumption/s: %1.4f\n",(consumption_by_time /(timedif+last_Engine_Work)));
 			cout << "Enhgine is: " << (engine.get_EngineWork() ? "started" : "stoped") << endl;
 			printf("Trip distance : %3.2f km\n", trip);
-			std::this_thread::sleep_for(1s);
+			std::this_thread::sleep_for(100ms);
 		}
 	}
 
