@@ -29,4 +29,15 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="hot_drink_cup_mug_tea_coffee_chocolate_icon_150795.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="png-clipart-emoji-sticker-thought-computer-icons-emoji-smiley-sticker (1).ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icon2.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

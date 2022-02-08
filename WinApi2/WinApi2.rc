@@ -50,13 +50,19 @@ END
 // Dialog
 //
 
-IDD_DIALOG1 DIALOGEX 0, 0, 309, 176
-STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
+IDD_DIALOG1 DIALOGEX 0, 0, 455, 332
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOPMOST
 CAPTION "MyWind"
 FONT 9, "MS Shell Dlg", 700, 0, 0xCC
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,169,155,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,252,155,50,14
+    DEFPUSHBUTTON   "OK",IDOK,347,311,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,398,311,50,14
+    PUSHBUTTON      "Copy",IDC_CHECK1,7,311,50,14
+    EDITTEXT        IDC_EDIT1,7,23,441,15,ES_CENTER | ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT2,7,66,441,14,ES_CENTER | ES_AUTOHSCROLL
+    LTEXT           "Login",IDC_STATIC,7,7,110,13
+    LTEXT           "Password",IDC_STATIC,7,51,110,12,0,WS_EX_ACCEPTFILES
 END
 
 
@@ -70,10 +76,11 @@ GUIDELINES DESIGNINFO
 BEGIN
     IDD_DIALOG1, DIALOG
     BEGIN
+        MOCKUP, 1, 100, 0, -60, "..\..\..\..\..\6XHLjPGHhsE.jpg"
         LEFTMARGIN, 7
-        RIGHTMARGIN, 302
+        RIGHTMARGIN, 448
         TOPMARGIN, 7
-        BOTTOMMARGIN, 169
+        BOTTOMMARGIN, 325
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -88,6 +95,18 @@ IDD_DIALOG1 AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON                    "hot_drink_cup_mug_tea_coffee_chocolate_icon_150795.ico"
+
+IDI_ICON2               ICON                    "icon2.ico"
 
 #endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
