@@ -1,7 +1,10 @@
 #include<Windows.h>
 #include"resource.h"
 
-CONST CHAR Invite[] = "Enter login pls";
+CONST CHAR InviteLogin[] = "Введите логин";
+CONST CHAR InvitePassword[] = "Введите пароль";
+CONST CHAR TrueLogin[] = "ThreeHundredBucks";
+CONST CHAR TruePassword[] = "DungeonMasters12345";
 
 //#define MSGBOX
 BOOL CALLBACK DLGProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -23,13 +26,16 @@ BOOL CALLBACK DLGProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1));
 		SendMessage(hwnd, WM_SETICON, 0, (LPARAM)hIcon);
-		SendMessage(GetDlgItem(hwnd, IDC_EDIT1), WM_SETTEXT, 0, (LPARAM)Invite);
+		SendMessage(GetDlgItem(hwnd, IDC_EDIT1), WM_SETTEXT, 0, (LPARAM)InviteLogin);
+		SendMessage(GetDlgItem(hwnd, IDC_EDIT2), WM_SETTEXT, 0, (LPARAM)InvitePassword);
 		//SendMessage(GetDlgItem(hwnd,IDC_EDIT1), WM_SETFOCUS, NULL, 0);
 		//HWND hBtn = CreateWindowEx();
 	}
 	break;
 	case WM_COMMAND: 
 	{
+		CONST INT SIZE = 256;
+		CHAR buffer[SIZE]{};
 		switch (LOWORD(wParam))
 		{
 		case IDC_CHECK1: 
@@ -39,22 +45,50 @@ BOOL CALLBACK DLGProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				SendMessage(hEdit, WM_GETTEXT, SIZE, (LPARAM)buffer);
 				SendMessage(GetDlgItem(hwnd, IDC_EDIT2), WM_SETTEXT, 0, (LPARAM)buffer);
 			}break;
-		case IDOK: MessageBox(NULL, "Была нажата кнопка ОК", "Info", MB_ICONINFORMATION); break;
+		case IDOK: 
+			{
+			SendMessage(GetDlgItem(hwnd, IDC_EDIT1), WM_GETTEXT, SIZE, (LPARAM)buffer);
+			if (strcmp(buffer, InviteLogin) != 0 && strcmp(buffer, TrueLogin) == 0)
+			{
+				SendMessage(GetDlgItem(hwnd, IDC_EDIT2), WM_GETTEXT, SIZE, (LPARAM)buffer);
+				if (strcmp(buffer, InvitePassword) != 0 && strcmp(buffer, TruePassword) == 0)
+				{
+					MessageBox(NULL, "Вы вошли успешно", "LoginPasswordTrue", MB_ICONASTERISK);
+				}
+				else MessageBox(NULL, "Неверный пароль", "PasswordError", MB_ICONERROR);
+			}
+			else MessageBox(NULL, "Неверный логин", "LoginError", MB_ICONERROR); 
+			}break;
+			//MessageBox(NULL, "Была нажата кнопка ОК", "Info", MB_ICONINFORMATION); break;
 		case IDCANCEL: EndDialog(hwnd, 0); break;
 		case IDC_EDIT1:
-			CONST INT SIZE = 256;
-			CHAR buffer[SIZE]{};
 			SendMessage(GetDlgItem(hwnd, IDC_EDIT1), WM_GETTEXT, SIZE, (LPARAM)buffer);
+			switch (HIWORD(wParam))
+			{
+				case EN_SETFOCUS:
+					{
+						if (strcmp(buffer, InviteLogin) == 0)
+						SendMessage(GetDlgItem(hwnd, IDC_EDIT1), WM_SETTEXT, 0, (LPARAM)"");
+					}break;
+			case EN_KILLFOCUS:
+					{
+						if (strcmp(buffer, "") == 0)
+						SendMessage(GetDlgItem(hwnd, IDC_EDIT1), WM_SETTEXT, 0, (LPARAM)InviteLogin);
+					}break;
+			}break;
+		case IDC_EDIT2:
+			SendMessage(GetDlgItem(hwnd, IDC_EDIT2), WM_GETTEXT, SIZE, (LPARAM)buffer);
 			switch (HIWORD(wParam))
 			{
 			case EN_SETFOCUS:
 				{
-					if (strcmp(buffer, Invite) == 0)
-					SendMessage(GetDlgItem(hwnd, IDC_EDIT1), WM_SETTEXT, 0, (LPARAM)""); 
+					if (strcmp(buffer, InvitePassword) == 0)
+					SendMessage(GetDlgItem(hwnd, IDC_EDIT2), WM_SETTEXT, 0, (LPARAM)"");
 				}break;
 			case EN_KILLFOCUS:
 				{
-					if (strcmp(buffer, "") == 0)SendMessage(GetDlgItem(hwnd, IDC_EDIT1), WM_SETTEXT, 0, (LPARAM)Invite);
+					if (strcmp(buffer, "") == 0)
+					SendMessage(GetDlgItem(hwnd, IDC_EDIT2), WM_SETTEXT, 0, (LPARAM)InvitePassword);
 				}break;
 			}
 		}
