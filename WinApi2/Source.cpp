@@ -53,11 +53,11 @@ BOOL CALLBACK DLGProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				SendMessage(GetDlgItem(hwnd, IDC_EDIT2), WM_GETTEXT, SIZE, (LPARAM)buffer);
 				if (strcmp(buffer, InvitePassword) != 0 && strcmp(buffer, TruePassword) == 0)
 				{
-					MessageBox(NULL, "Вы вошли успешно", "LoginPasswordTrue", MB_ICONASTERISK);
+					MessageBox(NULL, "Вы вошли успешно", "LoginPasswordTrue", MB_ICONASTERISK | MB_TOPMOST | MB_TASKMODAL);
 				}
-				else MessageBox(NULL, "Неверный пароль", "PasswordError", MB_ICONERROR);
+				else MessageBox(NULL, "Неверный пароль", "PasswordError", MB_ICONERROR | MB_TOPMOST | MB_TASKMODAL);
 			}
-			else MessageBox(NULL, "Неверный логин", "LoginError", MB_ICONERROR); 
+			else MessageBox(NULL, "Неверный логин", "LoginError", MB_ICONERROR | MB_TOPMOST | MB_TASKMODAL);
 			}break;
 			//MessageBox(NULL, "Была нажата кнопка ОК", "Info", MB_ICONINFORMATION); break;
 		case IDCANCEL: EndDialog(hwnd, 0); break;
