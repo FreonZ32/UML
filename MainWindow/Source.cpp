@@ -1,5 +1,6 @@
 #include<Windows.h>
 #include<stdio.h>
+#include"resource.h"
 
 CONST CHAR g_szCLASS_NAME[] = "MyWindowClass";
 CONST CHAR g_szTitle[] = "My first window";
@@ -11,15 +12,17 @@ INT WINAPI WinMain(HINSTANCE hInstanse, HINSTANCE hPrevList, LPSTR lpCmdLine, IN
 	//1)регистраци€ класса окна
 	WNDCLASSEX wc;	//wc-Window class
 	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = 0;
+	wc.style = CS_VREDRAW| CS_BYTEALIGNCLIENT;
 	wc.lpfnWndProc = WndProc;	//”казатель на процедуру окна
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInstanse;
-	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 4);
+	//wc.hIcon = LoadIcon(hInstanse, MAKEINTRESOURCE(IDI_ICON_CAT));
+	//wc.hIconSm = LoadIcon(hInstanse, MAKEINTRESOURCE(IDI_ICON_ANIMAL));
+	wc.hIcon = (HICON)LoadImage(hInstanse, "cat.ico",IMAGE_ICON, 0, 0, LR_DEFAULTSIZE|LR_LOADFROMFILE);
+	wc.hIconSm = (HICON)LoadImage(hInstanse, "animal.ico",IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+	wc.hCursor = LoadCursor(hInstanse, MAKEINTRESOURCE(IDC_CURSOR1));
+	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wc.lpszClassName = g_szCLASS_NAME;
 	wc.lpszMenuName = NULL;
 	if (!RegisterClassEx(&wc))
