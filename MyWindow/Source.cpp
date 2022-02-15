@@ -11,7 +11,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevList, LPSTR lpCmdLine, IN
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
     wc.hInstance = hInstance;
-    wc.hIcon = 
     if (!RegisterClassEx(&wc)) {
         MessageBox(NULL,"Не получилось зарегистрировать класс!","Ошибка", MB_OK);
         return NULL; 
