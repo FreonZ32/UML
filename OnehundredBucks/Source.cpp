@@ -3,6 +3,11 @@
 #include<fstream>
 using namespace std;
 
+class Money
+{
+public:
+
+};
 
 void main()
 {
